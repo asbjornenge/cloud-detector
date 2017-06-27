@@ -1,8 +1,9 @@
 var async = require('async')
 var http = require('http')
+var log = require('debug-log')('cloud-detector')
 
 function get(uri, cb) {
-  console.log(uri)
+  log(uri)
   var r = http.get(uri, function(res) {
     if (res.statusCode) return cb(new Error('404'))
     res.setEncoding('utf8')
@@ -34,7 +35,7 @@ module.exports = function(topCallback) {
             callback(null) 
           })
         }], function(err) {
-          console.log('aws', err)
+          log('aws', err)
           awsCallback(err)
       })
     }),
@@ -58,18 +59,16 @@ module.exports = function(topCallback) {
           })
         }
       ], function(err) {
-        console.log('gcp', err)
+        log('gcp', err)
         gcpCallback(err)
       })
     })
   ], function(err, results) {
-    // DONE
-    console.log('==== done ====')
-    console.log('err: ', err)
-    console.log('res: ', results)
-    console.log(cloud, meta)
-    // If no cloud - return err
-    // If cloud != unknown - assume everything went well/
-    topCallback(cloud, meta)
+    log('==== DONE ====')
+    // OK
+    if (cloud != 'unknown') return topCallback(null, cloud, meta)
+    // ERRORS
+    var errors = results.map(function(r) { return r.error })
+    topCallback(errors, cloud, meta)
   }) 
 }
