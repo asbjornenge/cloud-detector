@@ -41,10 +41,17 @@ module.exports = function(topCallback) {
     }),
     // GCP
     async.reflect(function(gcpCallback) {
-      var baseUrl = 'http://169.254.169.254'
+      var baseOpts = {
+        hostname: '169.254.169.254',
+        port: 80,
+        path: '/replace',
+        headers: {
+          'Metadata-Flavor': 'Google'
+        }
+      }
       async.series([
         function(callback) {
-          get(baseUrl+'/computeMetadata/v1/instance/id', function(err, res) {
+          get(Object.assign({}, baseOpts, { path: '/computeMetadata/v1/instance/id' }), function(err, res) {
             if (err) return callback(err)
             cloud = 'gcp'
             meta = Object.assign({}, meta, { id: res })
@@ -52,7 +59,7 @@ module.exports = function(topCallback) {
           })
         },
         function(callback) {
-          get(baseUrl+'/computeMetadata/v1/instance/tags', function(err, res) {
+          get(Object.assign({}, baseOpts, { path: '/computeMetadata/v1/instance/tags' }), function(err, res) {
             if (err) return callback(err)
             meta = Object.assign({}, meta, { tags: JSON.parse(res) })
             callback(null) 
