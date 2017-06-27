@@ -5,7 +5,7 @@ var log = require('debug-log')('cloud-detector')
 function get(uri, cb) {
   log(uri)
   var r = http.get(uri, function(res) {
-    if (res.statusCode) return cb(new Error('404'))
+    if (res.statusCode != 200) return cb(new Error(res.statusCode))
     res.setEncoding('utf8')
     var rawData = ''
     res.on('data', function(chunk) { rawData += chunk; })
