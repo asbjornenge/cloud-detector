@@ -1,6 +1,5 @@
 #!/usr/bin/env node
-var cd = require('./index')
-cd(function(err, cloud, meta) {
+require('./')(function(err, cloud, meta) {
   if (err) {
     console.log(err.length+' error(s)')
     console.error(err[0])
