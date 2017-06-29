@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 var cd = require('./index')
 cd(function(err, cloud, meta) {
   if (err) {
