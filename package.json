@@ -1,10 +1,10 @@
 {
   "name": "cloud-detector",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "",
   "main": "index.js",
+  "bin": "./cli.js",
   "scripts": {
-    "bin": "./cli.js",
     "build": "pkg cli.js --target node6-alpine-x64"
   },
   "author": "",
