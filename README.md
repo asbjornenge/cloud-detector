@@ -19,4 +19,8 @@ require('cloud-detector')(function(err, cloud, meta) {
 })
 ```
 
+## Notes
+
+For now it only supports `AWS` and `GCP`, but will gladly accept PRs for other environments :grin: :tada:
+
 enjoy.
