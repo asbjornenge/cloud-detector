@@ -20,22 +20,42 @@ function get(uri, cb) {
 }
 
 module.exports = function(topCallback) {
-  var cloud = 'unknown'
-  var meta = {}
+  var data = { 
+    id: '',
+    zone: '',
+    cloud: '',
+    labels: {}}
   async.parallel([
-    // AWS
     async.reflect(function(awsCallback) {
       var baseUrl = 'http://169.254.169.254'
       async.series([
         function(callback) {
-          get(baseUrl+'/latest/dynamic/instance-identity/document', function(err, res) {
+          get(baseUrl+'/latest/meta-data/instance-id', function(err, res) {
             if (err) return callback(err)
-            cloud = 'aws'
-            meta = Object.assign({}, meta, JSON.parse(res))
+            data = Object.assign({}, data, { id: res })
+            callback(null) 
+          })
+        },
+        function(callback) {
+          get(baseUrl+'/latest/meta-data/placement/availability-zone', function(err, res) {
+            if (err) return callback(err)
+            data = Object.assign({}, data, { zone: res })
+            callback(null) 
+          })
+        },
+        function(callback) {
+          get(baseUrl+'/latest/user-data/', function(err, res) {
+            if (err) return callback(err)
+            try {
+              data = Object.assign({}, data, { labels: JSON.parse(res) })
+            } catch(e) {
+              log('Unable to parse aws user-data as json labels', res)
+            }
             callback(null) 
           })
         }], function(err) {
           log('aws', err)
+          if (!err) data = Object.assign({}, data, { cloud: 'aws' })
           awsCallback(err)
       })
     }),
@@ -53,29 +73,37 @@ module.exports = function(topCallback) {
         function(callback) {
           get(Object.assign({}, baseOpts, { path: '/computeMetadata/v1/instance/id' }), function(err, res) {
             if (err) return callback(err)
-            cloud = 'gcp'
-            meta = Object.assign({}, meta, { id: res })
+            data = Object.assign({}, data, { id: res })
             callback(null) 
           })
         },
         function(callback) {
-          get(Object.assign({}, baseOpts, { path: '/computeMetadata/v1/instance/tags' }), function(err, res) {
+          get(Object.assign({}, baseOpts, { path: '/computeMetadata/v1/instance/zone' }), function(err, res) {
             if (err) return callback(err)
-            meta = Object.assign({}, meta, { tags: JSON.parse(res) })
+            var zonepath = res.split('/')
+            data = Object.assign({}, data, { zone: zonepath[zonepath.length-1] })
+            callback(null) 
+          })
+        },
+        function(callback) {
+          get(Object.assign({}, baseOpts, { path: '/computeMetadata/v1/instance/attributes/?recursive=true' }), function(err, res) {
+            if (err) return callback(err)
+            data = Object.assign({}, data, { labels: JSON.parse(res) })
             callback(null) 
           })
         }
       ], function(err) {
         log('gcp', err)
+        if (!err) data = Object.assign({}, data, { cloud: 'gcp' })
         gcpCallback(err)
       })
     })
   ], function(err, results) {
     log('==== DONE ====')
     // OK
-    if (cloud != 'unknown') return topCallback(null, cloud, meta)
+    if (data.cloud != '') return topCallback(null, data)
     // ERRORS
     var errors = results.map(function(r) { return r.error })
-    topCallback(errors, cloud, meta)
+    topCallback(errors, data)
   }) 
 }

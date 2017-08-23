@@ -14,13 +14,26 @@ cloud-detector
 ### module
 
 ```js
-require('cloud-detector')(function(err, cloud, meta) {
-  console.log(err, cloud, meta)
+require('cloud-detector')(function(err, cloud) {
+  console.log(err, cloud)
 })
 ```
 
 ## Notes
 
 For now it only supports `AWS` and `GCP`, but will gladly accept PRs for other environments :grin: :tada:
+
+## Changelog
+
+### 2.0.0
+
+* Aligned data fetched from all clouds
+* Fetching more data
+* Bugfixes 
+
+### 1.0.x
+
+* Pre changelog.
+* Initial releae and such :tada:
 
 enjoy.
